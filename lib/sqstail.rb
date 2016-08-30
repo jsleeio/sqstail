@@ -12,11 +12,13 @@ module SQSTail
     def version
       puts "sqstail #{SQSTail::VERSION}"
     end
-  
+
     desc 'queue URL', 'polls and displays messages for SQS queue at URL'
+    option :delete_messages, type: :boolean, aliases: :d, default: false
     def queue(url)
       poller = Aws::SQS::QueuePoller.new(url)
-      poller.poll(visibility_timeout: 0) do |sqsmessage|
+      skip_delete = !options[:delete_messages]
+      poller.poll(visibility_timeout: 0, skip_delete: skip_delete) do |sqsmessage|
         body = ""
         begin
           body = "[json] #{JSON.parse(sqsmessage.body)}"
